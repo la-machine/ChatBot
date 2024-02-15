@@ -1,4 +1,4 @@
-name: chatbot
+name: chatbot docker image
 
 on:
   push:
