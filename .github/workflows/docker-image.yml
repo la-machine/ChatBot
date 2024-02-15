@@ -1,4 +1,4 @@
-name: ChatBot Image ci
+name: chatbot
 
 on:
   push:
