@@ -18,6 +18,7 @@ class Supplier(Base):
     payment_method = Column(String)
     enterprise_id = Column(Integer)
 
+
 class Employee(Base):
     __tablename__ = 'employee'
 
@@ -32,5 +33,19 @@ class Employee(Base):
     hire_date = Column(Date)
     enterprise_id = Column(Integer)
 
+class Procese_Activity(Base):
+    __tablename__ = 'procese_activity'
+    id = Column(Integer, primary_key=True)
+    label = Column(String)
+    number = Column(Integer)
+
+class Component(Base):
+    __tablename__ = 'Component'
+    id = Column(Integer, primary_key=True)
+    process_manager = Column(String)
+    app = Column(String)
+    information = Column(String)
+    purpose = Column(String)
+    id_procese_activity = Column(Integer)
 
 metadata = Base.metadata
