@@ -3,17 +3,19 @@ import re
 
 import panel as pn
 import openai
+from openai import OpenAI
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import create_engine, select
 import tables
-import docx2txt
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
+
+
 
 pn.extension()
 openai.api_key = ""
 panels = []
+client = openai
 
-engine = create_engine(f"postgresql+psycopg2://postgres:root@localhost:5432/chatbot")
+engine = create_engine(f"postgresql+psycopg2://postgres:postgres@localhost:5432/chatbot")
 if not database_exists(engine.url):
     create_database(engine.url)
 tables.metadata.create_all(bind=engine, checkfirst=True)
@@ -100,9 +102,9 @@ def update_Component(activity, new_value, record):
             record = "app"
         case "Process Manager":
             record = "process_manager"
-        case "information":
+        case "Information object":
             record = "information"
-        case "purpose":
+        case "Purpose":
             record = "purpose"
         case _:
             print(f"Invalid record: {record}")
@@ -110,22 +112,24 @@ def update_Component(activity, new_value, record):
         query = tables.Component.__table__.update().where(tables.Component.id_procese_activity == number).values(**{record: new_value})
         result = connection.execute(query)
         connection.commit()
-    
+
 F_messages = [{"role": "system", "content":f"You are ChatBot, an automated Serviced to collect informations for an enterprise"
-f"you first greate the user and the present a numerated list of what he can do on the system as shown bellow"
-f"Welcome to the data management system! I am here to help you record and update your processing activities. "
-f"The following activities have already been assigned to you:{getActivities()}"
-f"Please simply enter the appropriate number with which you would like to start updating the processing activities."
-f"After choosing its option you summarise what he has choose. Always say you have selected... then the option he has choose"
-f"You then move on and present what is present conserning his options he has chose and ask if everything is ok or he wish to change something"
-f"eg. Asuming he has choose 1, You have selected Correspondence & Invoices. I have the following information about this:"
-f"Process manager: ..."
-f"Application / Storage: ..."
-f"Information object: ..."
-f"Purpose: ..."            
-f"After presenting what you have about his option he has choose You then ask Is this information still correct or have there been any changes?"
-f"You then summarise the update that was make as shown bellow"
-f"Thank you for the update. I have now recorded that the Application / Storage for Correspondence & Invoices is Open Office.That is Application:Open Office"}]
+                                           f"you first greate the user and the present a numerated list of what he can do on the system as shown bellow"
+                                           f"Welcome to the data management system! I am here to help you record and update your processing activities. "
+                                           f"The following activities have already been assigned to you:{getActivities()}"
+                                           f"Please simply enter the appropriate number with which you would like to start updating the processing activities."
+                                           f"After choosing its option you summarise what he has choose. Always say you have selected... then the option he has choose"
+                                           f"You then move on and present what is present conserning his options he has chose and ask if everything is ok or he wish to change something"
+                                           f"eg. Asuming he has choose 1, You have selected Correspondence & Invoices. I have the following information about this:"
+                                           f"Process manager: ..."
+                                           f"Application / Storage: ..."
+                                           f"Information object: ..."
+                                           f"Purpose: ..."
+                                           f"After presenting what you have about his option he has choose You then ask Is this information still correct or have there been any changes?"
+                                           f"You then summarise the update that was make as shown bellow"
+                                           f"Thank you for the update. I have now recorded that the Application / Storage for Correspondence & Invoices is Open Office.That is Application:Open Office"
+                                           f"Is there any other think you want to modify ?"
+               }]
 
 
 # F_messages = [{"role": "system", "content": """You are ChatBot, an automated Serviced to collect informations for an enterprise
@@ -172,10 +176,11 @@ con = engine.connect()
 
 def get_completion_from_messages(messages):
     response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4-turbo-preview",
         messages=messages,
         temperature=0,
     )
+    print(response)
     return response.choices[0].message.content
 
 
@@ -231,8 +236,8 @@ def collect_messages(_):
                                        position=data.get('Position'),
                                        salary=data.get('Salary'),
                                        hire_date=data.get('Hire Date'),
-                                     )
-                                # termination_date=data.get('Termination Date'))
+                                       )
+            # termination_date=data.get('Termination Date'))
             save_employee(employee)
     return pn.Column(*panels)
 
@@ -265,11 +270,12 @@ def getData(content):
 interactive_conversation = pn.bind(collect_messages, button_conversation)
 
 custom_style = {
-        "border": "1px solid #ccc",
-        "padding": "10px",
-        "overflow": "auto",
-        "max-height": "500px",  # Adjust as needed
+    "border": "1px solid #ccc",
+    "padding": "10px",
+    "overflow": "auto",
+    "max-height": "500px",  # Adjust as needed
 }
+
 output_panel = pn.panel(interactive_conversation,styles=custom_style, loading_indicator=True)
 
 pn.config.raw_css.append('.user-label { color: blue; }')
